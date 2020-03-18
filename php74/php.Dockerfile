@@ -336,6 +336,30 @@ RUN set -xe; \
 RUN set -xe; \
     make install
 
+# Build Tesseract (https://github.com/tesseract-ocr/tesseract/releases)
+
+ARG tesseract
+ENV VERSION_TESSERACT=${tesseract}
+ENV TESSERACT_BUILD_DIR=${BUILD_DIR}/tesseract
+
+RUN set -xe; \
+    mkdir -p ${TESSERACT_BUILD_DIR}; \
+    curl -Ls https://github.com/tesseract-ocr/tesseract/archive/${VERSION_TESSERACT}.tar.gz \
+    | tar xzC ${TESSERACT_BUILD_DIR} --strip-components=1
+
+WORKDIR  ${TESSERACT_BUILD_DIR}/
+
+RUN set -xe; \
+    CFLAGS="" \
+    CPPFLAGS="-I${INSTALL_DIR}/include  -I/usr/include" \
+    LDFLAGS="-L${INSTALL_DIR}/lib64 -L${INSTALL_DIR}/lib" \
+    ./autogen.sh \
+    && ./configure --prefix=${INSTALL_DIR}
+
+RUN set -xe; \
+    make \
+    && make install
+
 # Build PHP
 
 ARG php
